@@ -14,10 +14,15 @@ BISON		:= bison
 BISON_FLAGS	:= -y
 
 SRCS		:= $(shell find $(SRC_DIR) -name '*.[cly]')
-OBJS		:= $(addprefix $(OBJ_DIR)/,$(SRCS:%.c=%.o))
+OBJS		:= $(subst $(SRC_DIR),$(OBJ_DIR), $(addsuffix .o, $(SRCS:.c=)))
 EXECUTABLE	:= mishell
 
-.PHONY: clean distclean
+.PHONY: clean distclean test
+
+test:
+	@echo "sources: " $(SRCS)
+	@echo "objects: " $(OBJS)
+
 
 $(EXECUTABLE): $(OBJS)
 	$(LD) $(LD_FLAGS) -o $@ $<
@@ -31,16 +36,19 @@ $(OBJ_DIR): $(BUILD_DIR)
 $(GEN_DIR): $(BUILD_DIR)
 	mkdir -p $@
 
-$(GEN_DIR)/%.c: %.l $(GEN_DIR)
+$(GEN_DIR)/%.l.c: $(SRC_DIR)/%.l $(GEN_DIR)
 	$(FLEX) $(FLEX_FLAGS) -o $@ $<
 
-$(GEN_DIR)/%.c: %.y $(GEN_DIR)
+$(GEN_DIR)/%.y.c: $(SRC_DIR)/%.y $(GEN_DIR)
 	$(BISON) $(BISON_FLAGS) -o $@ $<
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)%.c $(OBJ_DIR)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(OBJ_DIR)
 	$(CC) $(CC_FLAGS) -o $@ $<
 
-$(OBJ_DIR)/%.o: $(GEN_DIR)%.c $(OBJ_DIR) $(GEN_DIR)
+$(OBJ_DIR)/%.y.o: $(GEN_DIR)/%.y.c $(OBJ_DIR) $(GEN_DIR)
+	$(CC) $(CC_FLAGS) -o $@ $<
+
+$(OBJ_DIR)/%.l.o: $(GEN_DIR)/%.l.c $(OBJ_DIR) $(GEN_DIR)
 	$(CC) $(CC_FLAGS) -o $@ $<
 
 distclean:
