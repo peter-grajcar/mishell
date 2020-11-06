@@ -17,12 +17,7 @@ SRCS		:= $(shell find $(SRC_DIR) -name '*.[cly]')
 OBJS		:= $(subst $(SRC_DIR),$(OBJ_DIR), $(addsuffix .o, $(SRCS:.c=)))
 EXECUTABLE	:= mishell
 
-.PHONY: clean distclean test
-
-test:
-	@echo "sources: " $(SRCS)
-	@echo "objects: " $(OBJS)
-
+.PHONY: clean distclean
 
 $(EXECUTABLE): $(OBJS)
 	$(LD) $(LD_FLAGS) -o $@ $<
