@@ -5,10 +5,10 @@ compiler:
 
 os:
   - linux
-dist: xenial
+dist: bionic
 
 before_install:
-  - sudo apt-get -y install flex bison pkg-config libreadline6 
+  - sudo apt-get -y install flex bison pkg-config libreadline7 
 
 script: 
   - make
