@@ -11,9 +11,9 @@ LD_FLAGS	:= $(shell pkg-config --libs readline) $(shell pkg-config --libs flex)
 FLEX		:= flex
 FLEX_FLAGS	:=
 BISON		:= bison
-BISON_FLAGS	:= -y
+BISON_FLAGS	:= -d --report=all --report-file=$(GEN_DIR)/bison.out
 
-SRCS		:= $(shell find $(SRC_DIR) -name '*.[cly]')
+SRCS		:= $(shell find $(SRC_DIR) -name '*.[cyl]')
 OBJS		:= $(subst $(SRC_DIR),$(OBJ_DIR), $(addsuffix .o, $(subst .c,,$(subst .l,.lex,$(subst .y,.tab,$(SRCS))))))
 EXECUTABLE	:= mishell
 
@@ -22,7 +22,7 @@ EXECUTABLE	:= mishell
 .PRECIOUS: $(GEN_DIR)/%.lex.c
 
 $(EXECUTABLE): $(OBJS)
-	$(LD) -o $@ $< $(LD_FLAGS)
+	$(LD) -o $@ $^ $(LD_FLAGS)
 
 $(BUILD_DIR):
 	mkdir -p $@
@@ -33,19 +33,19 @@ $(OBJ_DIR): $(BUILD_DIR)
 $(GEN_DIR): $(BUILD_DIR)
 	mkdir -p $@
 
-$(GEN_DIR)/%.lex.c: $(SRC_DIR)/%.l $(GEN_DIR)
+$(GEN_DIR)/lexer.lex.c: $(SRC_DIR)/lexer.l $(GEN_DIR)
 	$(FLEX) $(FLEX_FLAGS) -o $@ $<
 
-$(GEN_DIR)/%.tab.c: $(SRC_DIR)/%.y $(GEN_DIR)
+$(GEN_DIR)/parser.tab.c: $(SRC_DIR)/parser.y $(GEN_DIR)
 	$(BISON) $(BISON_FLAGS) -o $@ $<
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(OBJ_DIR)
 	$(CC) $(CC_FLAGS) -o $@ -c $<
 
-$(OBJ_DIR)/%.tab.o: $(GEN_DIR)/%.tab.c $(OBJ_DIR) $(GEN_DIR)
+$(OBJ_DIR)/parser.tab.o: $(GEN_DIR)/parser.tab.c $(OBJ_DIR) $(GEN_DIR)
 	$(CC) $(CC_FLAGS) -o $@ -c $<
 
-$(OBJ_DIR)/%.lex.o: $(GEN_DIR)/%.lex.c $(OBJ_DIR) $(GEN_DIR)
+$(OBJ_DIR)/lexer.lex.o: $(GEN_DIR)/lexer.lex.c $(GEN_DIR)/parser.tab.c $(OBJ_DIR) $(GEN_DIR)
 	$(CC) $(CC_FLAGS) -o $@ -c $<
 
 distclean:
