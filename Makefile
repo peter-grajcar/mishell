@@ -5,9 +5,9 @@ BUILD_DIR	:= build
 OBJ_DIR		:= $(BUILD_DIR)/obj
 GEN_DIR		:= $(BUILD_DIR)/generated
 
-CC_FLAGS	:= -I$(INCLUDE_DIR) -I$(GEN_DIR) $(shell pkg-config --cflags readline) -Wall -Wextra -Werror -Wno-unused-parameter -Wmissing-prototypes
+CC_FLAGS	:= -I$(INCLUDE_DIR) -I$(GEN_DIR) -Wall -Wextra -Werror -Wno-unused-parameter -Wmissing-prototypes
 LD			:= gcc
-LD_FLAGS	:= $(shell pkg-config --libs readline) $(shell pkg-config --libs flex)
+LD_FLAGS	:= 
 FLEX		:= flex
 FLEX_FLAGS	:=
 BISON		:= bison
