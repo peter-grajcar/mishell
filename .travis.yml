@@ -8,7 +8,7 @@ os:
 dist: xenial
 
 before_install:
-  - sudo apt-get -y install flex bison pkg-config libreadline7 libreadline-dev
+  - sudo apt-get -y install flex bison pkg-config lib64readline7 libreadline-dev
 
 script: 
   - make
