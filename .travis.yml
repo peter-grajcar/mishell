@@ -6,10 +6,9 @@ compiler:
 os:
   - linux
 dist: xenial
-sudo: false
 
 before_install:
-  - sudo apt-get -y install flex bison readline
+  - sudo apt-get -y install flex bison pkg-config libreadline7 libreadline-dev
 
 script: 
   - make
