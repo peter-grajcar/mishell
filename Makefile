@@ -17,7 +17,7 @@ SRCS		:= $(shell find $(SRC_DIR) -name '*.[cyl]')
 OBJS		:= $(subst $(SRC_DIR),$(OBJ_DIR), $(addsuffix .o, $(subst .c,,$(subst .l,.lex,$(subst .y,.tab,$(SRCS))))))
 EXECUTABLE	:= mishell
 
-.PHONY: clean distclean
+.PHONY: clean distclean stylecheck
 
 .PRECIOUS: $(GEN_DIR)/%.lex.c
 
@@ -40,6 +40,9 @@ $(GEN_DIR)/parser.tab.c: $(SRC_DIR)/parser.y $(GEN_DIR)
 	$(BISON) $(BISON_FLAGS) -o $@ $<
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(OBJ_DIR)
+	@printf "\033[33m" # print the stylecheck result in yellow
+	@./cstyle.pl $<
+	@printf "\033[0m"
 	$(CC) $(CC_FLAGS) -o $@ -c $<
 
 $(OBJ_DIR)/parser.tab.o: $(GEN_DIR)/parser.tab.c $(OBJ_DIR) $(GEN_DIR)
@@ -47,7 +50,7 @@ $(OBJ_DIR)/parser.tab.o: $(GEN_DIR)/parser.tab.c $(OBJ_DIR) $(GEN_DIR)
 
 $(OBJ_DIR)/lexer.lex.o: $(GEN_DIR)/lexer.lex.c $(GEN_DIR)/parser.tab.c $(OBJ_DIR) $(GEN_DIR)
 	$(CC) $(CC_FLAGS) -o $@ -c $<
-
+	
 distclean:
 	find . -name '*.o' -exec rm -f {} \;
 	rm -rf $(GEN_DIR)
