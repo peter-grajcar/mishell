@@ -6,7 +6,7 @@
 int yylex();
 %}
 
-%define parse.error verbosed
+%define parse.error verbose
 %define api.token.prefix {TKN_}
 
 %code requires { #include "arglist.h" }
