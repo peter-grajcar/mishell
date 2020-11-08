@@ -8,6 +8,9 @@ os:
 dist: xenial
 sudo: false
 
+before_install:
+  - sudo apt-get -y install flex bison readline
+
 script: 
   - make
 
