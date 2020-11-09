@@ -28,6 +28,8 @@ int yylex();
 %token			SEMIC		";"
 %token			VERT		"|"
 %token  		GT			">"
+%token			DGT			">>"
+%token			LT			"<"
 %token<strval>	WORD		"word"
 
 %type			<arglist>		simple_command
@@ -37,11 +39,11 @@ int yylex();
 %type			<intval>		sublist
 %type			<intval>		list
 
-%start list
+%start complex_command
 
 %%
 
-simple_command: WORD argument_list_opt	{ 	
+simple_command: WORD argument_list_opt redirection_list_opt	{ 	
 											$$ = $2;
 											arglist_add($2, $1);
 										}
@@ -61,6 +63,19 @@ argument_list: WORD						{
 										}
              ;
 
+redirection_list: redirection_type WORD						{ free($2); }
+				| redirection_list redirection_type WORD 	{ free($3); }
+				;
+
+redirection_list_opt: %empty
+					| redirection_list
+					;
+
+redirection_type: LT
+				| GT
+				| DGT
+				;
+
 pipeline: simple_command				{ /* the last command in the pipeline */
 											$$ = pipeline_construct();
 											pipeline_add($$, $1);
@@ -78,11 +93,25 @@ sublist: pipeline						{
        ;
 
 list: %empty							{ }
-	| EOL list							{ }
 	| sublist							{ $$ = $1; }
-    | sublist SEMIC list				{ $$ = $3; }
-	| sublist EOL list					{ $$ = $3; }
+    | list separator sublist			{ $$ = $3; }
 	;
+
+complex_command: list
+	   		   | list separator
+	   		   ;
+
+separator: newlines
+         | SEMIC newlines_opt
+		 ;
+
+newlines_opt: %empty
+            | newlines
+			;
+
+newlines: EOL
+        | newlines EOL
+		;
 
 %%
 
