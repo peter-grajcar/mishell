@@ -3,6 +3,11 @@
 #include <errno.h>
 #include <string.h>
 
+/*
+ * Constructs a new argument list.
+ *
+ * @return an empty argument list.
+ */
 arglist_t *
 arglist_construct(void)
 {
@@ -13,6 +18,14 @@ arglist_construct(void)
 	return (list);
 }
 
+/*
+ * Adds a new argument to the beginning of the argument list.
+ *
+ * @param list an argument list.
+ * @param arg a new argument to add.
+ * @return 0 if success, otherwise error code
+ * @retval ENOMEM could not allocate argument list item.
+ */
 int
 arglist_add(arglist_t *list, char *arg)
 {
@@ -24,6 +37,12 @@ arglist_add(arglist_t *list, char *arg)
 	return (0);
 }
 
+/*
+ * Destructs an argument list. Call this function to safely free all the memory
+ * associated with arglist.
+ *
+ * @param list a list to destruct.
+ */
 void
 arglist_destruct(arglist_t *list)
 {
