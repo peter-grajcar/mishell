@@ -115,9 +115,3 @@ newlines: EOL
 
 %%
 
-int
-main(void)
-{
-	return yyparse();
-}
-

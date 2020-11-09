@@ -7,7 +7,7 @@ GEN_DIR		:= $(BUILD_DIR)/generated
 
 CC_FLAGS	:= -I$(INCLUDE_DIR) -I$(GEN_DIR) -g -Wall -Wextra -Werror -Wno-unused-parameter -Wmissing-prototypes
 LD			:= gcc
-LD_FLAGS	:= 
+LD_FLAGS	:= -lreadline
 FLEX		:= flex
 FLEX_FLAGS	:=
 BISON		:= bison
