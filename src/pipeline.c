@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
 #include "pipeline.h"
@@ -44,15 +45,31 @@ pipeline_add(pipeline_t *pipeline, arglist_t *arglist)
 int
 pipeline_exec(pipeline_t *pipeline)
 {
+	// TODO: implement pipes
+	// int left[2] = {0, 1};
+	// int right[2] = {0, 1};
+	int retval;
+
 	command_t *cmd;
 	TAILQ_FOREACH(cmd, pipeline, link) {
-		printf("exec(");
-		arglist_item_t *arg;
-		STAILQ_FOREACH(arg, cmd->args, link) {
-			printf("%s ", arg->arg);
+		char **argv = arglist_as_array(cmd->args);
+
+		switch (cmd->pid = fork()) {
+			case -1:
+				/* TODO: error message */
+				return (1);
+			case 0:
+				retval = execvp(argv[0], argv);
+				exit(retval);
+			default:
+				break;
 		}
-		printf(")\n");
+
+		free(argv);
 	}
+
+	wait(&retval);
+
 	return (0);
 }
 
