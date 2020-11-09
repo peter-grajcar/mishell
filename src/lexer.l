@@ -24,8 +24,6 @@ ctx_init();
 
 <COMMENT>.		/* ignore */
 
-echo			return TKN_ECHO;
-
 [^\n\r\t |;>]+	{
 					yylval.strval = strdup(yytext);
 					return TKN_WORD;

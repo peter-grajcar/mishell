@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "context.h"
 #include "arglist.h"
+#include "pipeline.h"
 
 int yylex();
 %}
@@ -9,11 +10,15 @@ int yylex();
 %define parse.error verbose
 %define api.token.prefix {TKN_}
 
-%code requires { #include "arglist.h" }
+%code requires { 
+#include "arglist.h" 
+#include "pipeline.h"
+}
 %union {
 	int intval;
 	char *strval;
 	arglist_t *arglist;
+	pipeline_t *pipeline;
 }
 
 %destructor { free($$); } 				<strval>
@@ -24,55 +29,56 @@ int yylex();
 %token			VERT		"|"
 %token  		GT			">"
 %token<strval>	WORD		"word"
-%token			ECHO		"echo"
 
-%type			<intval>		simple_command
-%type			<intval>		pipeline
-%type			<intval>		sublist
-%type			<intval>		list
+%type			<arglist>		simple_command
 %type			<arglist>		argument_list_opt
 %type			<arglist>		argument_list
+%type			<pipeline>		pipeline
+%type			<intval>		sublist
+%type			<intval>		list
 
 %start list
 
 %%
 
-simple_command: WORD argument_list_opt	{ 	printf("exec(%s", $1);
-											
-											if ($2) {
-												arglist_item_t *item;
-												SLIST_FOREACH(item, $2, link) {
-													printf(" %s", item->arg);
-												}
-												arglist_destruct($2);
-											}
-
-											printf(")\n");
-
-											free($1);
+simple_command: WORD argument_list_opt	{ 	
+											printf("exec(%s)\n", $1);
+											$$ = $2;
+											arglist_add($2, $1);
 										}
-              | ECHO argument_list_opt	{ }
 			  ;
 
-argument_list_opt: %empty				{ $$ = NULL; }
+argument_list_opt: %empty				{ $$ = arglist_construct(); }
                  | argument_list		{ $$ = $1; }
 				 ;
 
-argument_list: WORD						{ $$ = arglist_construct(); arglist_add($$, $1); }
-             | WORD argument_list		{ $$ = $2; arglist_add($$, $1); }
+argument_list: WORD						{ 
+											$$ = arglist_construct();
+											arglist_add($$, $1);
+										}
+             | WORD argument_list		{
+			 								$$ = $2;
+											arglist_add($$, $1);
+										}
              ;
 
-pipeline: simple_command				{ }				
-        | simple_command VERT pipeline	{ }
+pipeline: simple_command				{ /* the last command in the pipeline */
+											$$ = pipeline_construct();
+											pipeline_add($$, $1);
+										}				
+        | simple_command VERT pipeline	{ /* other commands in the pipeline */
+											$$ = $3;
+											pipeline_add($$, $1);
+										}
         ;
 
-sublist: pipeline						{ }
+sublist: pipeline						{ pipeline_destruct($1); }
        ;
 
 list: %empty							{ }
-	| sublist							{ }
-    | sublist SEMIC list				{ }
-	| sublist EOL list					{ }
+	| sublist							{ $$ = $1; }
+    | sublist SEMIC list				{ $$ = $3; }
+	| sublist EOL list					{ $$ = $3; }
 	;
 
 %%
