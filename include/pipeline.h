@@ -10,15 +10,15 @@ struct command {
 	arglist_t* args;
 	int *pipe_in;
 	int *pipe_out;
-	LIST_ENTRY(command) link;	
+	TAILQ_ENTRY(command) link;	
 };
 
 typedef struct command command_t;
-typedef LIST_HEAD(pipeline, command) pipeline_t;
+typedef TAILQ_HEAD(pipeline, command) pipeline_t;
 
 pipeline_t *pipeline_construct(void);
 int pipeline_add(pipeline_t *pipeline, arglist_t *cmd);
-int pipeline_execute(pipeline_t *pipeline);
+int pipeline_exec(pipeline_t *pipeline);
 void pipeline_destruct(pipeline_t *pipeline);
 
 #endif

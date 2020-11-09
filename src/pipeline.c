@@ -9,7 +9,7 @@ pipeline_construct(void)
 	pipeline_t *pipeline = malloc(sizeof (pipeline_t));
 	if (!pipeline)
 		return (NULL);
-	LIST_INIT(pipeline);
+	TAILQ_INIT(pipeline);
 	return (pipeline);
 }
 
@@ -20,7 +20,22 @@ pipeline_add(pipeline_t *pipeline, arglist_t *arglist)
 	if (!cmd)
 		return (ENOMEM);
 	cmd->args = arglist;
-	LIST_INSERT_HEAD(pipeline, cmd, link);
+	TAILQ_INSERT_HEAD(pipeline, cmd, link);
+	return (0);
+}
+
+int
+pipeline_exec(pipeline_t *pipeline)
+{
+	command_t *cmd;
+	TAILQ_FOREACH(cmd, pipeline, link) {
+		printf("exec(");
+		arglist_item_t *arg;
+		STAILQ_FOREACH(arg, cmd->args, link) {
+			printf("%s ", arg->arg);
+		}
+		printf(")\n");
+	}
 	return (0);
 }
 
@@ -28,9 +43,9 @@ void
 pipeline_destruct(pipeline_t *pipeline)
 {
 	command_t *cmd;
-	cmd = LIST_FIRST(pipeline);
+	cmd = TAILQ_FIRST(pipeline);
 	while (cmd != NULL) {
-		command_t *cmd_next = LIST_NEXT(cmd, link);
+		command_t *cmd_next = TAILQ_NEXT(cmd, link);
 		arglist_destruct(cmd->args);
 		free(cmd);
 		cmd = cmd_next;

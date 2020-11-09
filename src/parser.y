@@ -42,7 +42,6 @@ int yylex();
 %%
 
 simple_command: WORD argument_list_opt	{ 	
-											printf("exec(%s)\n", $1);
 											$$ = $2;
 											arglist_add($2, $1);
 										}
@@ -72,7 +71,10 @@ pipeline: simple_command				{ /* the last command in the pipeline */
 										}
         ;
 
-sublist: pipeline						{ pipeline_destruct($1); }
+sublist: pipeline						{ 
+											$$ = pipeline_exec($1);
+											pipeline_destruct($1);
+										}
        ;
 
 list: %empty							{ }
