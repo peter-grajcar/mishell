@@ -78,6 +78,7 @@ sublist: pipeline						{
        ;
 
 list: %empty							{ }
+	| EOL list							{ }
 	| sublist							{ $$ = $1; }
     | sublist SEMIC list				{ $$ = $3; }
 	| sublist EOL list					{ $$ = $3; }

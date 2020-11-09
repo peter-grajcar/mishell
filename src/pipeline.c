@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
+#include <sys/wait.h>
 #include "pipeline.h"
 
 /*
@@ -46,23 +47,49 @@ int
 pipeline_exec(pipeline_t *pipeline)
 {
 	// TODO: implement pipes
-	// int left[2] = {0, 1};
-	// int right[2] = {0, 1};
+	int left[2] = {0, 1};
+	int right[2] = {0, 1};
 	int retval;
 
 	command_t *cmd;
 	TAILQ_FOREACH(cmd, pipeline, link) {
 		char **argv = arglist_as_array(cmd->args);
 
+		if (TAILQ_NEXT(cmd, link)) {
+			pipe(right);
+		} else {
+			right[0] = 0;
+			right[1] = 1;
+		}
+
 		switch (cmd->pid = fork()) {
 			case -1:
 				/* TODO: error message */
 				return (1);
 			case 0:
+				if (left[0] != 0) {
+					close(0);
+					dup(left[0]);
+					close(left[0]);
+					close(left[1]);
+				}
+				if (right[1] != 1) {
+					close(1);
+					dup(right[1]);
+					close(right[0]);
+					close(right[1]);
+				}
+
 				retval = execvp(argv[0], argv);
 				exit(retval);
 			default:
-				break;
+				// do not close stdout stdin
+				if (left[0] != 0)
+					close(left[0]);
+				if (left[1] != 1)
+					close(left[1]);
+				left[0] = right[0];
+				left[1] = right[1];
 		}
 
 		free(argv);
