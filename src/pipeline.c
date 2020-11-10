@@ -6,6 +6,38 @@
 #include "pipeline.h"
 
 /*
+ *
+ *
+ * @param args
+ * @param redirect
+ * @return
+ * @retval NULL
+ */
+command_t *
+command_construct(arglist_t *args, redirection_t *redirect)
+{
+	command_t *cmd = malloc(sizeof (command_t));
+	if (!cmd)
+		return (NULL);
+	cmd->args = args;
+	cmd->redirect = redirect;
+	return (cmd);
+}
+/*
+ *
+ *
+ * @param cmd
+ */
+void
+command_destruct(command_t *cmd)
+{
+	arglist_destruct(cmd->args);
+	if (cmd->redirect)
+		redirection_destruct(cmd->redirect);
+	free(cmd);
+}
+
+/*
  * Constructs a new pipeline structure.
  *
  * @return new pipeline.
@@ -25,15 +57,10 @@ pipeline_construct(void)
  *
  * @param arglist simple command.
  * @return 0 if succesful, otherwise error code.
- * @retval ENOMEM could not allocate memory for command_t structure.
  */
 int
-pipeline_add(pipeline_t *pipeline, arglist_t *arglist)
+pipeline_add(pipeline_t *pipeline, command_t *cmd)
 {
-	command_t *cmd = malloc(sizeof (command_t));
-	if (!cmd)
-		return (ENOMEM);
-	cmd->args = arglist;
 	TAILQ_INSERT_HEAD(pipeline, cmd, link);
 	return (0);
 }
@@ -46,9 +73,8 @@ pipeline_add(pipeline_t *pipeline, arglist_t *arglist)
 int
 pipeline_exec(pipeline_t *pipeline)
 {
-	// TODO: implement pipes
 	int left[2] = {0, 1};
-	int right[2] = {0, 1};
+	int right[2];
 	int retval;
 
 	command_t *cmd;
@@ -113,8 +139,7 @@ pipeline_destruct(pipeline_t *pipeline)
 	cmd = TAILQ_FIRST(pipeline);
 	while (cmd != NULL) {
 		command_t *cmd_next = TAILQ_NEXT(cmd, link);
-		arglist_destruct(cmd->args);
-		free(cmd);
+		command_destruct(cmd);
 		cmd = cmd_next;
 	}
 	free(pipeline);

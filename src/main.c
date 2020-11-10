@@ -59,6 +59,7 @@ main(int argc, char *argv[])
 		buffer = yy_scan_string(input);
 		yyparse();
 		yy_delete_buffer(buffer);
+		free(input);
 	}
 
 	return (0);

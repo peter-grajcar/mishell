@@ -53,11 +53,20 @@ ctx_init();
 
 \|				return TKN_VERT;
 
->>				return TKN_DGT;
+>>				{
+					yylval.output_mode = REDIRECT_OUTPUT_APPEND;	
+					return TKN_DGT;
+				}
 
->				return TKN_GT;			
+>				{
+					yylval.output_mode = REDIRECT_OUTPUT_WRITE;
+					return TKN_GT;			
+				}
 
-\<				return TKN_LT;
+\<				{
+					yylval.output_mode = REDIRECT_OUTPUT_NONE;
+					return TKN_LT;
+				}
 
 .				yyerror("unexpected character '%s'\n", yytext);
 
