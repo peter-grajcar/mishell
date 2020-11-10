@@ -17,6 +17,7 @@ typedef enum redirect_output_mode redirect_output_mode_t;
 typedef struct redirection redirection_t;
 
 redirection_t *redirection_construct(char *file, redirect_output_mode_t mode);
+redirection_t *redirection_merge(redirection_t *left, redirection_t *right);
 void redirection_add(redirection_t *redirection, char *file, redirect_output_mode_t mode);
 void redirection_destruct(redirection_t *redirection);
 

@@ -19,18 +19,22 @@ int yylex();
 %union {
 	int intval;
 	char *strval;
-	arglist_t *arglist;
 	command_t *command;
 	pipeline_t *pipeline;
+	struct {
+		arglist_t *arglist;
+		redirection_t *redirection;
+	} command_suffix;
 	redirection_t *redirection;
 	redirect_output_mode_t output_mode;
 }
 
-%destructor { free($$); } 					<strval>
-%destructor { arglist_destruct($$); }		<arglist>
-%destructor { command_destruct($$); }		<command>
-%destructor	{ pipeline_destruct($$); }		<pipeline>
-%destructor { redirection_destruct($$); }	<redirection>
+%destructor { free($$); } 								<strval>
+%destructor { arglist_destruct($$.arglist); 
+			  redirection_destruct($$.redirection); }	<command_suffix>
+%destructor { command_destruct($$); }					<command>
+%destructor	{ pipeline_destruct($$); }					<pipeline>
+%destructor { redirection_destruct($$); 			}	<redirection>
 
 %token				EOL			"end of line"
 %token				SEMIC		";"
@@ -40,36 +44,41 @@ int yylex();
 %token<output_mode>	LT			"<"
 %token<strval>		WORD		"word"
 
-%type	<command>		simple_command
-%type	<arglist>		argument_list_opt
-%type	<arglist>		argument_list
-%type	<redirection>	redirection_list_opt
-%type	<redirection>	redirection_list
-%type	<output_mode>	redirection_mode
-%type	<pipeline>		pipeline
+%type	<command>			simple_command
+%type	<command_suffix>	argument_list_opt
+%type	<command_suffix>	argument_list
+%type	<redirection>		redirection_list_opt
+%type	<redirection>		redirection_list
+%type	<output_mode>		redirection_mode
+%type	<pipeline>			pipeline
 
 %start complex_command
 
 %%
 
-simple_command: WORD argument_list_opt redirection_list_opt	{ 	
-											arglist_add($2, $1);
-											$$ = command_construct($2, $3);
-										}
+simple_command: redirection_list_opt WORD redirection_list_opt argument_list_opt 
+															{ 	
+																arglist_add($4.arglist, $2);
+																$3 = redirection_merge($1, $3);
+																$4.redirection = redirection_merge($3, $4.redirection);
+																$$ = command_construct($4.arglist, $4.redirection);
+															}
 			  ;
 
-argument_list_opt: %empty				{ $$ = arglist_construct(); }
-                 | argument_list		{ $$ = $1; }
+argument_list_opt: %empty									{ $$.arglist = arglist_construct(); $$.redirection = NULL; }
+                 | argument_list							{ $$ = $1; }
 				 ;
 
-argument_list: WORD						{ 
-											$$ = arglist_construct();
-											arglist_add($$, $1);
-										}
-             | WORD argument_list		{
-			 								$$ = $2;
-											arglist_add($$, $1);
-										}
+argument_list: WORD redirection_list_opt					{ 
+																$$.arglist = arglist_construct();
+																$$.redirection = $2;
+																arglist_add($$.arglist, $1);
+															}
+             | WORD redirection_list_opt argument_list		{
+																arglist_add($3.arglist, $1);
+																$$.arglist = $3.arglist;
+																$$.redirection = redirection_merge($2, $3.redirection);
+															}
              ;
 
 redirection_list: redirection_mode WORD						{ $$ = redirection_construct($2, $1); }

@@ -11,7 +11,7 @@ before_install:
   - sudo apt-get -y install flex bison libreadline7 
 
 script: 
-  - make
+  - make && make test
 
 notifications:
   email: false
