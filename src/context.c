@@ -49,4 +49,6 @@ yyerror(const char *fmt, ...)
 	fprintf(stderr, "error:%d: ", lineno);
 	vfprintf(stderr, fmt, args);
 	fprintf(stderr, "\n");
+
+	ctx_retval = 1;
 }

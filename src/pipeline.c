@@ -2,6 +2,8 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <err.h>
 #include <sys/wait.h>
 #include "pipeline.h"
 
@@ -79,6 +81,7 @@ pipeline_exec(pipeline_t *pipeline)
 
 	command_t *cmd;
 	TAILQ_FOREACH(cmd, pipeline, link) {
+		int in_fd, out_fd;
 		char **argv = arglist_as_array(cmd->args);
 
 		if (TAILQ_NEXT(cmd, link)) {
@@ -93,13 +96,34 @@ pipeline_exec(pipeline_t *pipeline)
 				/* TODO: error message */
 				return (1);
 			case 0:
-				if (left[0] != 0) {
+				if (cmd->redirect && cmd->redirect->in_file) {
+					in_fd = open(cmd->redirect->in_file, O_RDONLY);
+					if (in_fd == -1) {
+						errx(1,
+							"cannot open file: %s\n",
+							cmd->redirect->in_file);
+					}
+					close(0);
+					dup(in_fd);
+					close(in_fd);
+				} else if (left[0] != 0) {
 					close(0);
 					dup(left[0]);
 					close(left[0]);
 					close(left[1]);
 				}
-				if (right[1] != 1) {
+
+				if (cmd->redirect && cmd->redirect->out_file) {
+					out_fd = open(cmd->redirect->out_file, O_WRONLY | O_CREAT | (cmd->redirect->output_mode == REDIRECT_OUTPUT_APPEND ? O_APPEND : 0), 0664);
+					if (out_fd == -1) {
+						errx(1,
+							"cannot open file: %s\n",
+							cmd->redirect->out_file);
+					}
+					close(1);
+					dup(out_fd);
+					close(out_fd);
+				} else if (right[1] != 1) {
 					close(1);
 					dup(right[1]);
 					close(right[0]);
@@ -121,7 +145,12 @@ pipeline_exec(pipeline_t *pipeline)
 		free(argv);
 	}
 
-	wait(&retval);
+	TAILQ_FOREACH(cmd, pipeline, link) {
+		waitpid(cmd->pid, &retval, 0);
+	}
+
+	if (WIFEXITED(retval))
+		return (WEXITSTATUS(retval));
 
 	return (0);
 }

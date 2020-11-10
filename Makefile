@@ -1,5 +1,6 @@
 CC			:= gcc
 SRC_DIR		:= src
+TESTS_DIR	:= tests
 INCLUDE_DIR	:= include
 BUILD_DIR	:= build
 OBJ_DIR		:= $(BUILD_DIR)/obj
@@ -17,7 +18,7 @@ SRCS		:= $(shell find $(SRC_DIR) -name '*.[cyl]')
 OBJS		:= $(subst $(SRC_DIR),$(OBJ_DIR), $(addsuffix .o, $(subst .c,,$(subst .l,.lex,$(subst .y,.tab,$(SRCS))))))
 EXECUTABLE	:= mishell
 
-.PHONY: clean distclean stylecheck
+.PHONY: clean distclean stylecheck test
 
 .PRECIOUS: $(GEN_DIR)/%.lex.c
 
@@ -32,6 +33,13 @@ $(OBJ_DIR): $(BUILD_DIR)
 
 $(GEN_DIR): $(BUILD_DIR)
 	mkdir -p $@
+
+stef:
+	git clone https://github.com/devnull-cz/stef
+	chmod +x stef/stef.sh
+
+test: stef
+	cd $(TESTS_DIR); ./run-tests.sh $(cat phase-1.tests)
 
 $(GEN_DIR)/lexer.lex.c: $(SRC_DIR)/lexer.l $(GEN_DIR)
 	$(FLEX) $(FLEX_FLAGS) -o $@ $<

@@ -47,8 +47,6 @@ int yylex();
 %type	<redirection>	redirection_list
 %type	<output_mode>	redirection_mode
 %type	<pipeline>		pipeline
-%type	<intval>		sublist
-%type	<intval>		list
 
 %start complex_command
 
@@ -101,14 +99,14 @@ pipeline: simple_command				{ /* the last command in the pipeline */
         ;
 
 sublist: pipeline						{ 
-											$$ = pipeline_exec($1);
+											ctx_retval = pipeline_exec($1);
 											pipeline_destruct($1);
 										}
        ;
 
-list: %empty							{ }
-	| sublist							{ $$ = $1; }
-    | list separator sublist			{ $$ = $3; }
+list: %empty
+	| sublist
+    | list separator sublist
 	;
 
 complex_command: list

@@ -10,6 +10,9 @@ redirection_construct(char *file, redirect_output_mode_t mode)
 	redirection_t *redirection = malloc(sizeof (redirection_t));
 	if (!redirection)
 		return (NULL);
+	redirection->in_file = NULL;
+	redirection->out_file = NULL;
+	redirection->output_mode = REDIRECT_OUTPUT_NONE;
 	redirection_add(redirection, file, mode);
 	return (redirection);
 }
@@ -22,11 +25,11 @@ redirection_add(redirection_t *redirection, char *file, redirect_output_mode_t m
 {
 	switch (mode) {
 		case REDIRECT_OUTPUT_NONE:
-			redirection->input_file = file;
+			redirection->in_file = file;
 			break;
 		case REDIRECT_OUTPUT_WRITE:
 		case REDIRECT_OUTPUT_APPEND:
-			redirection->output_file = file;
+			redirection->out_file = file;
 			redirection->output_mode = mode;	
 	}
 }
@@ -37,7 +40,9 @@ redirection_add(redirection_t *redirection, char *file, redirect_output_mode_t m
 void
 redirection_destruct(redirection_t *redirection)
 {
-	free(redirection->input_file);
-	free(redirection->output_file);
+	if (redirection->in_file)
+		free(redirection->in_file);
+	if (redirection->out_file)
+		free(redirection->out_file);
 	free(redirection);
 }

@@ -8,8 +8,8 @@ enum redirect_output_mode {
 };
 
 struct redirection {
-	char *input_file;
-	char *output_file;
+	char *in_file;
+	char *out_file;
 	enum redirect_output_mode output_mode;
 };
 
