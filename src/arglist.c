@@ -11,9 +11,10 @@
 arglist_t *
 arglist_construct(void)
 {
-	arglist_t *list = malloc(sizeof (arglist_t));
+	arglist_t *list = malloc(sizeof(arglist_t));
 	if (!list)
 		return (NULL);
+	list->argc = 0;
 	STAILQ_INIT(&list->argv);
 	return (list);
 }
@@ -26,10 +27,9 @@ arglist_construct(void)
  * @return 0 if success, otherwise error code
  * @retval ENOMEM could not allocate argument list item.
  */
-int
-arglist_add(arglist_t *list, char *arg)
+int arglist_add(arglist_t *list, char *arg)
 {
-	arglist_item_t *item = malloc(sizeof (arglist_item_t));
+	arglist_item_t *item = malloc(sizeof(arglist_item_t));
 	if (!item)
 		return (ENOMEM);
 	item->arg = arg;
@@ -50,12 +50,13 @@ arglist_as_array(arglist_t *list)
 {
 	arglist_item_t *item;
 
-	char **arr = malloc((list->argc + 1) * sizeof (char *));
+	char **arr = malloc((list->argc + 1) * sizeof(char *));
 	if (!arr)
 		return (NULL);
 
 	int i = 0;
-	STAILQ_FOREACH(item, &list->argv, link) {
+	STAILQ_FOREACH(item, &list->argv, link)
+	{
 		arr[i] = item->arg;
 		++i;
 	}
@@ -70,11 +71,11 @@ arglist_as_array(arglist_t *list)
  *
  * @param list a list to destruct.
  */
-void
-arglist_destruct(arglist_t *list)
+void arglist_destruct(arglist_t *list)
 {
 	arglist_item_t *item = STAILQ_FIRST(&list->argv);
-	while (item) {
+	while (item)
+	{
 		arglist_item_t *item_next = STAILQ_NEXT(item, link);
 		free(item->arg);
 		free(item);
