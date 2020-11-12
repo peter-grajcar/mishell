@@ -8,6 +8,7 @@
 
 struct command {
 	pid_t pid;
+	int retval;
 	arglist_t* args;
 	redirection_t *redirect;
 	int *pipe_in;

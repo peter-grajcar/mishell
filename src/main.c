@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <setjmp.h>
+#include <err.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "context.h"
@@ -27,11 +28,11 @@ main(int argc, char *argv[])
 	int opt;
 	while ((opt = getopt(argc, argv, "c:")) != -1) {
 		switch (opt) {
-			case 'c':
-				buffer = yy_scan_string(optarg);
-				yyparse();
-				yy_delete_buffer(buffer);
-				return (ctx_retval);
+		case 'c':
+			buffer = yy_scan_string(optarg);
+			yyparse();
+			yy_delete_buffer(buffer);
+			return (ctx_retval);
 		}
 	}
 
@@ -42,7 +43,7 @@ main(int argc, char *argv[])
 	}
 
 	if (signal(SIGINT, signal_handler) == SIG_ERR) {
-
+		err(1, "cannot set signal handler");
 	}
 
 	while (1) {
@@ -69,7 +70,7 @@ void
 signal_handler(int signo)
 {
 	if (signo == SIGINT) {
-		printf("\n");
+		write(1, "\n", 1);
 		siglongjmp(sigint_buf, 2);
 	}
 }
