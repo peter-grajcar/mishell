@@ -38,7 +38,7 @@ stef:
 	git clone https://github.com/devnull-cz/stef
 	chmod +x stef/stef.sh
 
-test: stef
+test: stef $(EXECUTABLE)
 	cd $(TESTS_DIR); ./run-tests.sh $(cat phase-1.tests)
 
 $(GEN_DIR)/lexer.lex.c: $(SRC_DIR)/lexer.l $(GEN_DIR)

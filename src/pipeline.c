@@ -148,14 +148,16 @@ pipeline_exec(pipeline_t *pipeline)
 						retval = builtin_cmd.exec(argv);
 					} else {
 						retval = execvp(argv[0], argv);
-						if (errno)
-							err(1, "%s", argv[0]);
+						if (errno == ENOENT)
+							errx(127, "command not found: %s", argv[0]);
+						if (errno == EACCES)
+							errx(1, "access denied: %s", argv[0]);
 					}
 					exit(retval);
 			}
 		}
 
-		
+
 		// do not close stdout stdin
 		if (left[0] != 0)
 			close(left[0]);
