@@ -9,11 +9,27 @@
 #include "builtincmd.h"
 #include "context.h"
 
+/*
+ * Terminates the shell. Command will preserve the return value of the last
+ * command.
+ *
+ * @param argv command arguments.
+ */
 static int builtincmd_exit(char *argv[], ...)
 {
 	exit(ctx_retval);
 }
 
+/*
+ * Changes the current working directory. If no argument is present the
+ * current directory will be set to $HOME environment variable (if such
+ * variable exists. If '-' is passed as an argument, the current
+ * directory will be set to the previously visited directory.
+ *
+ * @param argv command arguments.
+ * @return 0 if the current directory was successfully changed. Otherwise error
+ *         code.
+ */
 static int builtincmd_cd(char *argv[], ...)
 {
 	char *path = argv[1];
@@ -82,6 +98,12 @@ static int builtincmd_cd(char *argv[], ...)
 	return (retval);
 }
 
+/*
+ * Prints the current working directory.
+ *
+ * @param argv command arguments.
+ * @return 0 if successful.
+ */
 static int builtincmd_pwd(char *argv[], ...)
 {
 	printf("%s\n", getenv("PWD"));
@@ -89,10 +111,11 @@ static int builtincmd_pwd(char *argv[], ...)
 }
 
 /*
+ * Returns builtin command with corresponding name.
  *
- * @param cmd_name
- * @return
- * @retval NULL
+ * @param cmd_name builtin command name.
+ * @return builtin command.
+ * @retval NULL if the name does not correspond to any builtin command.
  */
 builtincmd_t
 get_builtin_command(const char *cmd_name)

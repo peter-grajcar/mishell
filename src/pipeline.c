@@ -11,12 +11,12 @@
 #include "builtincmd.h"
 
 /*
+ * Constructs a new command.
  *
- *
- * @param args
- * @param redirect
- * @return
- * @retval NULL
+ * @param args command arguments.
+ * @param redirect file redirection information.
+ * @return newly created command.
+ * @retval NULL could not allocate memory for the command.
  */
 command_t *
 command_construct(arglist_t *args, redirection_t *redirect)
@@ -30,10 +30,12 @@ command_construct(arglist_t *args, redirection_t *redirect)
 	cmd->redirect = redirect;
 	return (cmd);
 }
+
 /*
+ * Destroys command. Use this function to safely free the allocated memory by
+ * the command structure.
  *
- *
- * @param cmd
+ * @param cmd command to destroy.
  */
 void
 command_destruct(command_t *cmd)
@@ -72,6 +74,11 @@ pipeline_add(pipeline_t *pipeline, command_t *cmd)
 	return (0);
 }
 
+/*
+ * Opens a file for output redirection.
+ *
+ * @param redirection file redirection information.
+ */
 static int
 open_redirection_out(redirection_t *redirect)
 {
@@ -87,6 +94,11 @@ open_redirection_out(redirection_t *redirect)
 	return (fd);
 }
 
+/*
+ * Opens a file for input redirection.
+ *
+ * @param redirection file redirection information.
+ */
 static int
 open_redirection_in(redirection_t *redirect)
 {

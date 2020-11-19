@@ -3,7 +3,12 @@
 #include "redirect.h"
 
 /*
+ * Constructs a new structure which holds information about command
+ * redirection.
  *
+ * @param file filename.
+ * @param mode output mode.
+ * @return newly created structure.
  */
 redirection_t *
 redirection_construct(char *file, redirect_output_mode_t mode)
@@ -19,6 +24,13 @@ redirection_construct(char *file, redirect_output_mode_t mode)
 }
 
 
+/*
+ * Merges two redirection structures into one. The left one will be discarded.
+ *
+ * @param left left hand side operand.
+ * @param right right hand side operand.
+ * @return merged structure.
+ */
 redirection_t *
 redirection_merge(redirection_t *left, redirection_t *right)
 {
@@ -43,7 +55,11 @@ redirection_merge(redirection_t *left, redirection_t *right)
 }
 
 /*
+ * Adds another redirection to the structure.
  *
+ * @param redirection redirection structure.
+ * @param file filename.
+ * @param mode output mode.
  */
 void
 redirection_add(redirection_t *redirection, char *file, redirect_output_mode_t mode)
@@ -64,7 +80,10 @@ redirection_add(redirection_t *redirection, char *file, redirect_output_mode_t m
 }
 
 /*
+ * Destroys given redirection structure. Use this function to safely free the
+ * allocated memory.
  *
+ * @param redirection structure to destroy.
  */
 void
 redirection_destruct(redirection_t *redirection)
