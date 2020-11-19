@@ -2,19 +2,27 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <stdarg.h>
+#include <unistd.h>
 #include <err.h>
 #include <sys/stat.h>
 #include "builtincmd.h"
 #include "context.h"
 
-static int builtincmd_exit(char *argv[])
+static int builtincmd_exit(char *argv[], ...)
 {
 	exit(ctx_retval);
 }
 
-static int builtincmd_cd(char *argv[])
+static int builtincmd_cd(char *argv[], ...)
 {
 	char *path = argv[1];
+
+	va_list vargs;
+	va_start(vargs, argv);
+	va_arg(vargs, int); // fd_in is not used
+	int fd_out = va_arg(vargs, int);
+	va_end(vargs);
 
 	if (argv[1] && argv[2]) {
 		err(1, "cd: too many arguments");
@@ -37,12 +45,19 @@ static int builtincmd_cd(char *argv[])
 		}
 		char *tmp = strdup(getenv("PWD"));
 		setenv("PWD", path, 1);
+
+		// write new pwd
+		write(fd_out, path, strlen(tmp));
+		write(fd_out, "\n", 1);
+
 		if (!tmp) {
 			err(1, "cd: could not set $OLDPWD");
 			return (1);
 		}
+
 		setenv("OLDPWD", tmp, 1);
 		free(tmp);
+
 		return (0);
 	}
 
@@ -67,7 +82,7 @@ static int builtincmd_cd(char *argv[])
 	return (retval);
 }
 
-static int builtincmd_pwd(char *argv[])
+static int builtincmd_pwd(char *argv[], ...)
 {
 	printf("%s\n", getenv("PWD"));
 	return (0);

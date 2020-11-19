@@ -1,5 +1,5 @@
 #ifndef PIPELINE_H
-#define PIPELINE_H
+#define	PIPELINE_H
 
 #include <unistd.h>
 #include <sys/queue.h>
@@ -9,11 +9,11 @@
 struct command {
 	pid_t pid;
 	int retval;
-	arglist_t* args;
+	arglist_t *args;
 	redirection_t *redirect;
 	int *pipe_in;
 	int *pipe_out;
-	TAILQ_ENTRY(command) link;	
+	TAILQ_ENTRY(command) link;
 };
 
 typedef struct command command_t;

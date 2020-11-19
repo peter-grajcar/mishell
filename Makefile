@@ -41,6 +41,11 @@ stef:
 test: stef $(EXECUTABLE)
 	cd $(TESTS_DIR); ./run-tests.sh $(cat phase-1.tests)
 
+check-cstyle:
+	@printf "\033[33m" # print the stylecheck result in yellow
+	@./cstyle.pl $(shell find $(SRC_DIR) -name '*.c') $(shell find $(INCLUDE_DIR) -name '*.h')
+	@printf "\033[0m"
+
 $(GEN_DIR)/lexer.lex.c: $(SRC_DIR)/lexer.l $(GEN_DIR)
 	$(FLEX) $(FLEX_FLAGS) -o $@ $<
 

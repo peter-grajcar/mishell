@@ -72,6 +72,32 @@ pipeline_add(pipeline_t *pipeline, command_t *cmd)
 	return (0);
 }
 
+static int
+open_redirection_out(redirection_t *redirect)
+{
+	if (!redirect || !redirect->out_file)
+		return (-1);
+
+	int flags =  O_WRONLY | O_CREAT;
+	if (redirect->output_mode == REDIRECT_OUTPUT_APPEND)
+		flags |= O_APPEND;
+
+	int fd = open(redirect->out_file, flags, 0664);
+
+	return (fd);
+}
+
+static int
+open_redirection_in(redirection_t *redirect)
+{
+	if (!redirect || !redirect->in_file)
+		return (-1);
+
+	int fd = open(redirect->in_file, O_RDONLY);
+
+	return (fd);
+}
+
 /*
  * Executes given pipeline.
  *
@@ -80,38 +106,57 @@ pipeline_add(pipeline_t *pipeline, command_t *cmd)
 int
 pipeline_exec(pipeline_t *pipeline)
 {
+	// file descriptors of the left and the right side of a command in the
+	// pipeline
 	int left[2] = {0, 1};
 	int right[2];
+	// pipeline return value
 	int retval;
 
 	command_t *cmd;
 	TAILQ_FOREACH(cmd, pipeline, link) {
-		int in_fd, out_fd;
+		// redirection file descriptors
+		int in_fd = 0, out_fd = 1;
+
 		char **argv = arglist_as_array(cmd->args);
 
 		if (TAILQ_NEXT(cmd, link)) {
 			pipe(right);
 		} else {
+			// the last command in the pipeline
 			right[0] = 0;
 			right[1] = 1;
 		}
 
 		builtincmd_t builtin_cmd = get_builtin_command(argv[0]);
 
-		// note that commands which are not executed as children
-		// cannot output anything!
+		// execute builtin command which cannot be run as a child process
 		if (builtin_cmd.exec && !builtin_cmd.exec_as_child) {
-			cmd->retval = builtin_cmd.exec(argv);
+			// set input file descriptor
+			in_fd = open_redirection_in(cmd->redirect);
+			if (in_fd == -1)
+				in_fd = left[0];
+			// set output file descriptor
+			out_fd = open_redirection_out(cmd->redirect);
+			if (out_fd == -1)
+				out_fd = right[1];
+
+			cmd->retval = builtin_cmd.exec(argv, in_fd, out_fd);
+
 			free(argv);
+
 			continue;
 		} else {
 			switch (cmd->pid = fork()) {
 				case -1:
-					/* TODO: error message */
+					err(1, "could not fork a new process");
 					return (1);
 				case 0:
+					// child process
+
+					// sets input file descriptor
 					if (cmd->redirect && cmd->redirect->in_file) {
-						in_fd = open(cmd->redirect->in_file, O_RDONLY);
+						in_fd = open_redirection_in(cmd->redirect);
 						if (in_fd == -1) {
 							errx(1,
 								"cannot open file: %s\n",
@@ -127,8 +172,9 @@ pipeline_exec(pipeline_t *pipeline)
 						close(left[1]);
 					}
 
+					// sets output file descriptor
 					if (cmd->redirect && cmd->redirect->out_file) {
-						out_fd = open(cmd->redirect->out_file, O_WRONLY | O_CREAT | (cmd->redirect->output_mode == REDIRECT_OUTPUT_APPEND ? O_APPEND : 0), 0664);
+						out_fd = open_redirection_out(cmd->redirect);
 						if (out_fd == -1) {
 							errx(1,
 								"cannot open file: %s\n",
@@ -153,16 +199,19 @@ pipeline_exec(pipeline_t *pipeline)
 						if (errno == EACCES)
 							errx(1, "access denied: %s", argv[0]);
 					}
+
 					exit(retval);
+					// end of child process
 			}
 		}
 
-
-		// do not close stdout stdin
+		// close file descriptors on the left side but do not close stdout
+		// stdin
 		if (left[0] != 0)
 			close(left[0]);
 		if (left[1] != 1)
 			close(left[1]);
+
 		left[0] = right[0];
 		left[1] = right[1];
 

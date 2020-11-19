@@ -1,5 +1,5 @@
-#ifndef REDIRECT_H
-#define REDIRECT_H
+#ifndef	REDIRECT_H
+#define	REDIRECT_H
 
 enum redirect_output_mode {
 	REDIRECT_OUTPUT_NONE,

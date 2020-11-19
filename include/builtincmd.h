@@ -1,5 +1,5 @@
-#ifndef BUILTINCMD_H
-#define BUILTINCMD_H
+#ifndef	BUILTINCMD_H
+#define	BUILTINCMD_H
 
 #define	COMMAND_CD		"cd"
 #define	COMMAND_PWD		"pwd"
@@ -7,7 +7,7 @@
 
 struct builtincmd {
 	int exec_as_child;
-	int (*exec)(char *argv[]);
+	int (*exec)(char *argv[], ...);
 };
 
 typedef struct builtincmd builtincmd_t;
