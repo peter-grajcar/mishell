@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <setjmp.h>
+#include <string.h>
 #include <err.h>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -58,6 +59,9 @@ main(int argc, char *argv[])
 			printf("\n");
 			exit(ctx_retval);
 		}
+
+		if (strcmp(input, "") != 0)
+			add_history(input);
 
 		buffer = yy_scan_string(input);
 		yyparse();
