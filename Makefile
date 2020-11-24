@@ -16,7 +16,7 @@ BISON_FLAGS	:= -d --report=all --report-file=$(GEN_DIR)/bison.out
 
 SRCS		:= $(shell find $(SRC_DIR) -name '*.[cyl]')
 OBJS		:= $(subst $(SRC_DIR),$(OBJ_DIR), $(addsuffix .o, $(subst .c,,$(subst .l,.lex,$(subst .y,.tab,$(SRCS))))))
-EXECUTABLE	:= mishell
+EXECUTABLE	:= mish
 
 .PHONY: clean distclean stylecheck test
 

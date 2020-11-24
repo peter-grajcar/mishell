@@ -8,9 +8,10 @@
 #include <readline/history.h>
 #include "context.h"
 
-/* defined in context.h */
+// defined in context.h
 int ctx_retval;
 
+// flex variables
 FILE *yyin;
 typedef struct yybufferstate *YY_BUFFER_STATE;
 extern int yyparse();
@@ -52,6 +53,7 @@ main(int argc, char *argv[])
 
 		char *input = readline("mish$ ");
 
+		// Exit on EOF
 		if (!input) {
 			printf("\n");
 			exit(ctx_retval);
