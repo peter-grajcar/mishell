@@ -62,7 +62,8 @@ redirection_merge(redirection_t *left, redirection_t *right)
  * @param mode output mode.
  */
 void
-redirection_add(redirection_t *redirection, char *file, redirect_output_mode_t mode)
+redirection_add(redirection_t *redirection, char *file,
+				redirect_output_mode_t mode)
 {
 	switch (mode) {
 		case REDIRECT_OUTPUT_NONE:

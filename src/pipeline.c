@@ -142,7 +142,8 @@ pipeline_exec(pipeline_t *pipeline)
 
 		builtincmd_t builtin_cmd = get_builtin_command(argv[0]);
 
-		// execute builtin command which cannot be run as a child process
+		// execute builtin command which cannot be run as a child
+		// process
 		if (builtin_cmd.exec && !builtin_cmd.exec_as_child) {
 			// set input file descriptor
 			in_fd = open_redirection_in(cmd->redirect);
@@ -158,67 +159,67 @@ pipeline_exec(pipeline_t *pipeline)
 			free(argv);
 
 			continue;
-		} else {
-			switch (cmd->pid = fork()) {
-				case -1:
-					err(1, "could not fork a new process");
-					return (1);
-				case 0:
-					// child process
+		}
+		cmd->pid = fork();
+		if (cmd->pid == -1) {
+			err(1, "could not fork a new process");
+			return (1);
+		} else if (cmd->pid == 0) {
+			// child process
 
-					// sets input file descriptor
-					if (cmd->redirect && cmd->redirect->in_file) {
-						in_fd = open_redirection_in(cmd->redirect);
-						if (in_fd == -1) {
-							errx(1,
-								"cannot open file: %s\n",
-								cmd->redirect->in_file);
-						}
-						close(0);
-						dup(in_fd);
-						close(in_fd);
-					} else if (left[0] != 0) {
-						close(0);
-						dup(left[0]);
-						close(left[0]);
-						close(left[1]);
-					}
-
-					// sets output file descriptor
-					if (cmd->redirect && cmd->redirect->out_file) {
-						out_fd = open_redirection_out(cmd->redirect);
-						if (out_fd == -1) {
-							errx(1,
-								"cannot open file: %s\n",
-								cmd->redirect->out_file);
-						}
-						close(1);
-						dup(out_fd);
-						close(out_fd);
-					} else if (right[1] != 1) {
-						close(1);
-						dup(right[1]);
-						close(right[0]);
-						close(right[1]);
-					}
-
-					if (builtin_cmd.exec) {
-						retval = builtin_cmd.exec(argv);
-					} else {
-						retval = execvp(argv[0], argv);
-						if (errno == ENOENT)
-							errx(127, "command not found: %s", argv[0]);
-						if (errno == EACCES)
-							errx(1, "access denied: %s", argv[0]);
-					}
-
-					exit(retval);
-					// end of child process
+			// sets input file descriptor
+			if (cmd->redirect && cmd->redirect->in_file) {
+				in_fd = open_redirection_in(cmd->redirect);
+				if (in_fd == -1) {
+					errx(1,
+						"cannot open file: %s\n",
+						cmd->redirect->in_file);
+				}
+				close(0);
+				dup(in_fd);
+				close(in_fd);
+			} else if (left[0] != 0) {
+				close(0);
+				dup(left[0]);
+				close(left[0]);
+				close(left[1]);
 			}
+
+			// sets output file descriptor
+			if (cmd->redirect && cmd->redirect->out_file) {
+				out_fd = open_redirection_out(cmd->redirect);
+				if (out_fd == -1) {
+					errx(1,
+						"cannot open file: %s\n",
+						cmd->redirect->out_file);
+				}
+				close(1);
+				dup(out_fd);
+				close(out_fd);
+			} else if (right[1] != 1) {
+				close(1);
+				dup(right[1]);
+				close(right[0]);
+				close(right[1]);
+			}
+
+			if (builtin_cmd.exec) {
+				retval = builtin_cmd.exec(argv);
+				exit(retval);
+			}
+
+			retval = execvp(argv[0], argv);
+			if (errno == ENOENT)
+				errx(127, "command not found: %s", argv[0]);
+			if (errno == EACCES)
+				errx(1, "access denied: %s", argv[0]);
+
+			exit(retval);
+			// end of child process
 		}
 
-		// close file descriptors on the left side but do not close stdout
-		// stdin
+		// close file descriptors on the left side but do not close
+		// stdout and stdin
 		if (left[0] != 0)
 			close(left[0]);
 		if (left[1] != 1)
